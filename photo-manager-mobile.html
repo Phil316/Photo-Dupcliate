@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0" />
+<meta name="theme-color" content="#12141a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' https://graph.microsoft.com https://login.microsoftonline.com https://*.sharepoint.com https://*.1drv.com; frame-src https://login.microsoftonline.com; base-uri 'self';" />
+<title>Photo Manager Mobile</title>
+
+<style>
+/* =========================================================================
+   PHOTO MANAGER MOBILE — Design-System
+   Gleiche Designsprache wie die Desktop-Version (dunkles Charcoal + Gold-
+   Akzent), angepasst an Touch-Bedienung: große Tap-Ziele, Bottom-Navigation,
+   Safe-Area-Insets für Geräte mit Notch/Home-Indicator.
+   ========================================================================= */
+
+:root {
+  --font-display: 'Segoe UI Semibold', 'Segoe UI', -apple-system, system-ui, sans-serif;
+  --font-body: -apple-system, 'Segoe UI', system-ui, Roboto, Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, Menlo, monospace;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-height: 64px;
+  --shadow-1: 0 2px 10px rgba(0,0,0,0.28);
+}
+
+[data-theme='dark'] {
+  --bg: #12141a;
+  --bg-elevated: #171a21;
+  --surface: #1c2029;
+  --surface-hover: #232833;
+  --border: #2a303c;
+  --border-soft: #232833;
+  --text-primary: #eef0f4;
+  --text-secondary: #9aa1af;
+  --text-muted: #626a79;
+  --accent: #e0a458;
+  --accent-strong: #f0b96e;
+  --accent-soft: rgba(224,164,88,0.16);
+  --success: #4fb0a5;
+  --success-soft: rgba(79,176,165,0.16);
+  --warning: #e8b23d;
+  --warning-soft: rgba(232,178,61,0.16);
+  --danger: #e2626a;
+  --danger-soft: rgba(226,98,106,0.16);
+  --info: #6f9be0;
+  --info-soft: rgba(111,155,224,0.16);
+}
+[data-theme='light'] {
+  --bg: #f3f2ef;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #f2ede4;
+  --border: #e3ddd0;
+  --border-soft: #ece7db;
+  --text-primary: #221f1a;
+  --text-secondary: #635c4e;
+  --text-muted: #948c78;
+  --accent: #b97a2e;
+  --accent-strong: #9c6423;
+  --accent-soft: rgba(185,122,46,0.14);
+  --success: #227b70;
+  --success-soft: rgba(34,123,112,0.14);
+  --warning: #a3730f;
+  --warning-soft: rgba(163,115,15,0.14);
+  --danger: #b3333c;
+  --danger-soft: rgba(179,51,60,0.14);
+  --info: #33588f;
+  --info-soft: rgba(51,88,143,0.14);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; overscroll-behavior-y: none; }
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.45;
+}
+button, input, select, textarea { font-family: inherit; color: inherit; }
+h1,h2,h3,h4 { font-family: var(--font-display); margin: 0; }
+::-webkit-scrollbar { width: 0; height: 0; }
+
+.app { display: flex; flex-direction: column; height: 100dvh; height: 100vh; }
+
+/* ---------------------------- Topbar ---------------------------- */
+.topbar {
+  padding: calc(var(--safe-top) + 12px) 18px 12px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.topbar h1 { font-size: 18px; font-weight: 700; }
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  background: var(--surface); border: 1px solid var(--border-soft); color: var(--text-secondary);
+}
+.status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
+.status-pill.connected { color: var(--success); background: var(--success-soft); border-color: var(--success-soft); }
+.status-pill.connected .dot { background: var(--success); }
+
+/* ---------------------------- Content ---------------------------- */
+.content { flex: 1; overflow-y: auto; padding: 16px 16px calc(90px + var(--safe-bottom)); -webkit-overflow-scrolling: touch; }
+.view { display: none; }
+.view.active { display: block; animation: fade-in 160ms ease; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.section-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); margin: 22px 0 10px;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ---------------------------- Bottom Nav ---------------------------- */
+.bottom-nav {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; background: var(--bg-elevated); border-top: 1px solid var(--border-soft);
+  padding-bottom: var(--safe-bottom);
+  z-index: 50;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 9px 2px; height: var(--nav-height);
+  background: none; border: none; color: var(--text-muted); font-size: 10.5px; font-weight: 600;
+}
+.nav-btn .nav-icon { font-size: 20px; line-height: 1; }
+.nav-btn.active { color: var(--accent-strong); }
+
+/* ---------------------------- Buttons ---------------------------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 11px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-primary); font-size: 14px; font-weight: 600;
+  min-height: 44px; cursor: pointer;
+}
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #1a1408; }
+.btn-danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.btn-ghost { background: transparent; border-color: transparent; }
+.btn-sm { padding: 7px 12px; font-size: 12.5px; min-height: 36px; }
+.btn-block { width: 100%; }
+.btn:disabled { opacity: 0.5; }
+.btn:active { transform: scale(0.98); }
+
+/* ---------------------------- Cards / Panels ---------------------------- */
+.panel {
+  background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md);
+  padding: 16px;
+}
+.panel + .panel { margin-top: 12px; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.panel-header h3 { font-size: 14.5px; }
+.panel-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+.safe-mode-banner {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 12px 14px; border-radius: var(--radius-md);
+  background: var(--success-soft); border: 1px solid var(--success); color: var(--success);
+  font-size: 12.5px; margin-bottom: 16px;
+}
+
+/* ---------------------------- Stat Chips ---------------------------- */
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 13px 14px; }
+.stat-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+.stat-label { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+.stat-card.warning .stat-value { color: var(--warning); }
+.stat-card.success .stat-value { color: var(--success); }
+.stat-card.accent .stat-value { color: var(--accent-strong); }
+
+/* ---------------------------- Toolbar ---------------------------- */
+.toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.search-input, select.select, input[type=text], input[type=number] {
+  padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--bg-elevated); font-size: 14px; min-height: 44px;
+}
+.search-input { flex: 1; min-width: 0; }
+
+/* ---------------------------- Progress ---------------------------- */
+.progress-track { height: 8px; border-radius: 999px; background: var(--bg-elevated); border: 1px solid var(--border-soft); overflow: hidden; }
+.progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-strong)); border-radius: 999px; transition: width 150ms linear; }
+.progress-row { margin-top: 12px; }
+.progress-label { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-secondary); margin-top: 5px; }
+.progress-caption { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* ---------------------------- Photo Grid ---------------------------- */
+.image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.image-card { position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 2px solid transparent; background: var(--surface); }
+.image-card.selected { border-color: var(--accent); }
+.image-thumb-wrap { aspect-ratio: 1/1; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; }
+.image-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.image-thumb-fallback { font-size: 10px; color: var(--text-muted); text-align: center; padding: 6px; }
+.image-select {
+  position: absolute; top: 6px; left: 6px; width: 20px; height: 20px; border-radius: 6px;
+  border: 1.5px solid rgba(255,255,255,0.75); background: rgba(18,20,26,0.5);
+}
+.image-card.selected .image-select { background: var(--accent); border-color: var(--accent); }
+.image-fname { font-size: 10px; padding: 5px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); }
+.upload-badge {
+  position: absolute; top: 6px; right: 6px; font-size: 8.5px; font-weight: 800; padding: 2px 6px;
+  border-radius: 999px; text-transform: uppercase;
+}
+.upload-badge.exists, .upload-badge.uploaded { background: var(--success-soft); color: var(--success); }
+.upload-badge.similar { background: var(--warning-soft); color: var(--warning); }
+.upload-badge.unknown { background: var(--info-soft); color: var(--info); }
+.upload-badge.error { background: var(--danger-soft); color: var(--danger); }
+
+.pagination { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 18px; font-size: 12px; color: var(--text-secondary); }
+
+/* ---------------------------- Selection Bar ---------------------------- */
+.selection-bar {
+  position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-height) + var(--safe-bottom) + 10px);
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 10px 14px; display: none; align-items: center; gap: 10px; box-shadow: var(--shadow-1); z-index: 40;
+}
+.selection-bar.visible { display: flex; }
+.selection-bar span { font-size: 13px; font-weight: 600; flex: 1; }
+
+/* ---------------------------- Duplicate Groups ---------------------------- */
+.dup-group-list { display: flex; flex-direction: column; gap: 10px; }
+.dup-group {
+  background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-md);
+  padding: 12px; display: grid; grid-template-columns: 62px 1fr; gap: 12px;
+}
+.photo-stack { position: relative; width: 58px; height: 58px; }
+.photo-stack .stack-tile { position: absolute; inset: 0; border-radius: 7px; overflow: hidden; border: 2px solid var(--bg-elevated); background: var(--bg-elevated); }
+.photo-stack .stack-tile img { width: 100%; height: 100%; object-fit: cover; }
+.photo-stack .stack-tile:nth-child(1) { transform: rotate(-7deg) translate(-2px,2px); z-index: 1; }
+.photo-stack .stack-tile:nth-child(2) { transform: rotate(4deg) translate(2px,-1px); z-index: 2; }
+.photo-stack .stack-tile:nth-child(3) { z-index: 3; }
+.similarity-ring {
+  position: absolute; bottom: -6px; right: -6px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--bg-elevated); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 7.5px; font-weight: 700; color: var(--accent-strong); z-index: 4;
+}
+.similarity-ring.exact { border-color: var(--success); color: var(--success); }
+.dup-title { font-weight: 700; font-size: 13px; }
+.dup-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.dup-original { margin-top: 6px; font-size: 10.5px; font-family: var(--font-mono); color: var(--text-muted); }
+.dup-original b { color: var(--accent-strong); }
+.dup-savings { margin-top: 6px; font-family: var(--font-display); font-weight: 700; color: var(--warning); font-size: 13px; }
+
+/* ---------------------------- Modal ---------------------------- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(6,7,10,0.65); display: none; z-index: 100; }
+.modal-overlay.open { display: flex; align-items: flex-end; }
+.modal-sheet {
+  background: var(--bg-elevated); border-radius: 18px 18px 0 0; width: 100%; max-height: 88vh; overflow-y: auto;
+  padding-bottom: calc(20px + var(--safe-bottom));
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 10px; position: sticky; top: 0; background: var(--bg-elevated); }
+.modal-header h3 { font-size: 15.5px; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; }
+.modal-body { padding: 6px 18px 18px; }
+.compare-card { border: 2px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 12px; position: relative; }
+.compare-card.is-original { border-color: var(--accent); }
+.compare-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--bg); }
+.compare-meta { padding: 9px 11px 11px; font-size: 11.5px; }
+.compare-meta .fname { font-weight: 700; font-size: 12.5px; }
+.compare-meta .fmeta { font-family: var(--font-mono); color: var(--text-muted); margin-top: 3px; }
+.original-tag { position: absolute; top: 7px; left: 7px; background: var(--accent); color: #1a1408; font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; }
+
+/* ---------------------------- OneDrive ---------------------------- */
+.account-row { display: flex; align-items: center; gap: 12px; }
+.account-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-strong); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; flex-shrink: 0; }
+.account-name { font-weight: 700; font-size: 14px; }
+.account-email { font-size: 11.5px; color: var(--text-secondary); word-break: break-all; }
+.diagnostic-box { font-family: var(--font-mono); font-size: 11px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; word-break: break-all; margin-top: 8px; }
+.folder-path { font-family: var(--font-mono); font-size: 12.5px; padding: 10px 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 8px; }
+.folder-tree-list { display: flex; flex-direction: column; gap: 3px; max-height: 220px; overflow-y: auto; margin-top: 10px; }
+.folder-tree-item { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: var(--radius-sm); font-size: 13px; }
+.folder-tree-item:active { background: var(--surface-hover); }
+.upload-file-row { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-soft); font-size: 12px; }
+.upload-file-row:last-child { border-bottom: none; }
+.upload-file-row .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); }
+.upload-file-row .fstatus { font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+.error-item { font-size: 11.5px; font-family: var(--font-mono); color: var(--danger); background: var(--danger-soft); padding: 8px 10px; border-radius: var(--radius-sm); margin-top: 6px; }
+
+/* ---------------------------- Forms ---------------------------- */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.field label { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
+.field .hint { font-size: 11px; color: var(--text-muted); }
+.range-row { display: flex; align-items: center; gap: 10px; }
+.range-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.range-value { font-family: var(--font-mono); font-weight: 700; min-width: 42px; text-align: right; }
+.theme-row { display: flex; align-items: center; justify-content: space-between; }
+.switch { width: 40px; height: 22px; border-radius: 999px; background: var(--border); position: relative; border: none; flex-shrink: 0; }
+.switch::after { content:''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--bg-elevated); transition: transform 120ms; }
+.switch.on { background: var(--accent); }
+.switch.on::after { transform: translateX(18px); }
+
+/* ---------------------------- Log ---------------------------- */
+.log-box { font-family: var(--font-mono); font-size: 11px; max-height: 240px; overflow-y: auto; background: var(--bg-elevated); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 10px 12px; }
+.log-line { padding: 2px 0; color: var(--text-secondary); }
+.log-line.level-ERROR { color: var(--danger); }
+.log-line.level-WARN { color: var(--warning); }
+
+/* ---------------------------- Misc ---------------------------- */
+.empty-state { text-align: center; padding: 50px 16px; color: var(--text-muted); }
+.empty-state .icon { font-size: 28px; margin-bottom: 8px; }
+.empty-state h4 { color: var(--text-secondary); margin-bottom: 5px; }
+.empty-state p { font-size: 12.5px; margin: 0; }
+.flex { display: flex; align-items: center; gap: 8px; }
+.spacer { flex: 1; }
+.text-muted { color: var(--text-muted); }
+.mono { font-family: var(--font-mono); }
+.hidden { display: none !important; }
+.toast-stack { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-height) + var(--safe-bottom) + 10px); display: flex; flex-direction: column; gap: 8px; z-index: 200; pointer-events: none; }
+.toast { background: var(--bg-elevated); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); padding: 10px 13px; font-size: 12.5px; box-shadow: var(--shadow-1); }
+.toast.error { border-left-color: var(--danger); }
+.toast.success { border-left-color: var(--success); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <h1 id="view-title">Start</h1>
+    <span class="status-pill" id="onedrive-status-pill"><span class="dot"></span><span id="onedrive-status-text">Getrennt</span></span>
+  </header>
+
+  <main class="content" id="content">
+
+    <!-- ===================== START ===================== -->
+    <section class="view active" id="view-start">
+      <div class="safe-mode-banner">
+        <span>🛡️</span>
+        <div><strong>Sicherer Modus:</strong> Es wird nichts automatisch gelöscht. Diese App arbeitet mit einer lokalen <em>Kopie</em> der von dir ausgewählten Fotos — deine Original-Galerie bleibt unangetastet.</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Importierte Fotos</div></div>
+        <div class="stat-card warning"><div class="stat-value" id="stat-exact">0</div><div class="stat-label">Exakte Duplikate</div></div>
+        <div class="stat-card warning"><div class="stat-value" id="stat-similar">0</div><div class="stat-label">Ähnliche Bilder</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-savable">0 MB</div><div class="stat-label">Einsparbar</div></div>
+        <div class="stat-card success"><div class="stat-value" id="stat-onedrive">0</div><div class="stat-label">In OneDrive</div></div>
+        <div class="stat-card accent"><div class="stat-value" id="stat-storage">0 MB</div><div class="stat-label">Lokal gespeichert</div></div>
+      </div>
+
+      <div class="section-title">Schnellzugriff</div>
+      <button class="btn btn-primary btn-block" id="btn-quick-import">+ Fotos aus der Galerie hinzufügen</button>
+    </section>
+
+    <!-- ===================== FOTOS ===================== -->
+    <section class="view" id="view-photos">
+      <button class="btn btn-primary btn-block" id="btn-add-photos">+ Fotos aus der Galerie hinzufügen</button>
+
+      <div id="import-progress-wrap" class="hidden" style="margin-top:12px;">
+        <div class="progress-track"><div class="progress-fill" id="import-progress-fill"></div></div>
+        <div class="progress-label" id="import-progress-label">0 / 0</div>
+        <div class="progress-caption" id="import-progress-caption"></div>
+      </div>
+
+      <div class="toolbar" style="margin-top:16px;">
+        <input type="text" class="search-input" id="photos-search" placeholder="Dateiname suchen…" />
+        <select class="select" id="photos-sort">
+          <option value="filename">Name</option>
+          <option value="size">Größe</option>
+          <option value="mtime">Datum</option>
+        </select>
+      </div>
+
+      <div class="image-grid" id="photos-grid"></div>
+      <div class="pagination" id="photos-pagination"></div>
+    </section>
+
+    <!-- ===================== DUPLIKATE ===================== -->
+    <section class="view" id="view-duplicates">
+      <div class="toolbar">
+        <button class="btn btn-primary btn-sm" id="tab-exact" data-tab="exact">Exakt</button>
+        <button class="btn btn-sm" id="tab-similar" data-tab="similar">Ähnlich</button>
+        <span class="spacer"></span>
+      </div>
+      <div class="flex" id="threshold-row" style="margin-bottom:14px;">
+        <span class="text-muted" style="font-size:11.5px;">Schwellenwert</span>
+        <input type="range" min="50" max="100" value="90" id="threshold-slider" style="flex:1;" />
+        <span class="range-value mono" id="threshold-value">90%</span>
+      </div>
+      <div class="dup-group-list" id="duplicate-list"></div>
+    </section>
+
+    <!-- ===================== ONEDRIVE ===================== -->
+    <section class="view" id="view-onedrive">
+      <div class="panel">
+        <div class="account-row">
+          <div class="account-avatar" id="account-avatar">?</div>
+          <div style="flex:1; min-width:0;">
+            <div class="account-name" id="account-name">Nicht verbunden</div>
+            <div class="account-email" id="account-email">Mit Microsoft-Konto anmelden</div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-onedrive-connect" style="margin-top:12px;">Mit OneDrive verbinden</button>
+        <button class="btn btn-danger btn-block hidden" id="btn-onedrive-disconnect" style="margin-top:12px;">Trennen</button>
+      </div>
+
+      <div class="section-title">Zielordner</div>
+      <div class="panel">
+        <div class="panel-header">
+          <div><h3>Upload-Ziel</h3><div class="panel-sub">Ausgewählte Fotos landen in diesem OneDrive-Ordner</div></div>
+        </div>
+        <div class="folder-path mono" id="onedrive-target-path">/Bilder</div>
+        <button class="btn btn-sm" id="btn-browse-folders" style="margin-top:10px;">Ordner durchsuchen</button>
+        <div class="folder-tree-list" id="onedrive-folder-list"></div>
+      </div>
+
+      <div class="section-title">Upload</div>
+      <div class="panel">
+        <div class="panel-sub" id="upload-selection-caption" style="margin-bottom:10px;">Wähle Fotos in der Ansicht „Fotos" aus.</div>
+        <button class="btn btn-primary btn-block" id="btn-start-upload">Upload starten</button>
+        <button class="btn btn-danger btn-block hidden" id="btn-cancel-upload" style="margin-top:8px;">Abbrechen</button>
+
+        <div id="upload-progress-wrap" class="hidden" style="margin-top:12px;">
+          <div class="progress-track"><div class="progress-fill" id="upload-progress-fill"></div></div>
+          <div class="progress-label" id="upload-progress-label">0 / 0</div>
+          <div class="progress-caption" id="upload-progress-caption"></div>
+        </div>
+        <div id="upload-file-list"></div>
+        <div id="upload-error-list"></div>
+      </div>
+    </section>
+
+    <!-- ===================== MEHR / EINSTELLUNGEN ===================== -->
+    <section class="view" id="view-settings">
+      <div class="section-title">OneDrive / Microsoft Graph</div>
+      <div class="panel">
+        <div class="field">
+          <label>Client-ID (Azure/Entra App-Registrierung)</label>
+          <input type="text" id="setting-client-id" placeholder="z. B. 3f9a1c2e-…" />
+          <span class="hint">Plattformtyp muss „Single-page application" (SPA) sein — siehe Anleitung.</span>
+        </div>
+        <div class="field">
+          <label>Konto-Typ</label>
+          <select id="setting-tenant" class="select">
+            <option value="common">Privat + Geschäftlich (common)</option>
+            <option value="consumers">Nur privates Microsoft-Konto</option>
+            <option value="organizations">Nur geschäftliches Konto</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Redirect-URI dieser Seite (in Azure eintragen)</label>
+          <div class="diagnostic-box" id="redirect-uri-box">–</div>
+          <button class="btn btn-sm" id="btn-copy-redirect" style="margin-top:8px;">Kopieren</button>
+        </div>
+      </div>
+
+      <div class="section-title">Duplikaterkennung</div>
+      <div class="panel">
+        <div class="field">
+          <label>Ähnlichkeits-Schwellenwert</label>
+          <div class="range-row">
+            <input type="range" min="50" max="100" id="setting-threshold" />
+            <span class="range-value mono" id="setting-threshold-value">90%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Thumbnail-Größe (Pixel)</label>
+          <input type="number" id="setting-thumbnail-size" min="120" max="600" step="20" />
+        </div>
+      </div>
+
+      <div class="section-title">Erscheinungsbild</div>
+      <div class="panel">
+        <div class="theme-row">
+          <span style="font-size:13.5px; font-weight:600;" id="theme-label">Dunkles Design</span>
+          <button class="switch on" id="theme-switch"></button>
+        </div>
+      </div>
+
+      <div class="section-title">Speicher</div>
+      <div class="panel">
+        <div class="panel-sub" id="storage-usage-text">Lade Speicherinformationen…</div>
+        <button class="btn btn-danger btn-block" id="btn-clear-data" style="margin-top:12px;">Alle importierten Fotos aus der App löschen</button>
+        <span class="hint">Löscht nur die Kopie in dieser App — deine echten Fotos in der Galerie sind davon nicht betroffen.</span>
+      </div>
+
+      <div class="flex" style="margin: 16px 0;">
+        <button class="btn btn-primary btn-block" id="btn-save-settings">Einstellungen speichern</button>
+      </div>
+
+      <div class="section-title">Protokoll</div>
+      <div class="panel">
+        <div class="log-box" id="log-box"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="selection-bar" id="selection-bar">
+    <span id="selection-count-text">0 ausgewählt</span>
+    <button class="btn btn-sm" id="btn-selection-clear">Aufheben</button>
+    <button class="btn btn-primary btn-sm" id="btn-selection-upload">Zu OneDrive</button>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="start"><span class="nav-icon">🏠</span>Start</button>
+    <button class="nav-btn" data-view="photos"><span class="nav-icon">🖼️</span>Fotos</button>
+    <button class="nav-btn" data-view="duplicates"><span class="nav-icon">⧉</span>Duplikate</button>
+    <button class="nav-btn" data-view="onedrive"><span class="nav-icon">☁️</span>OneDrive</button>
+    <button class="nav-btn" data-view="settings"><span class="nav-icon">⚙️</span>Mehr</button>
+  </nav>
+</div>
+
+<input type="file" id="file-input" accept="image/*" multiple hidden />
+
+<div class="modal-overlay" id="compare-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3 id="compare-modal-title">Duplikatgruppe</h3>
+      <button class="modal-close" id="compare-modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="compare-grid"></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
+<script>
+'use strict';
+/* =========================================================================
+   PHOTO MANAGER MOBILE — Anwendungslogik
+   Läuft vollständig im Browser. Keine Server-Komponente außer dem reinen
+   Hosting der Datei selbst (für den OneDrive-OAuth-Redirect notwendig).
+   ========================================================================= */
+
+/* ---------------------------- IndexedDB ---------------------------- */
+const DB_NAME = 'photo-manager-mobile';
+const DB_VERSION = 1;
+let dbPromise = null;
+
+function openDb() {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('photos')) {
+        const store = db.createObjectStore('photos', { keyPath: 'id' });
+        store.createIndex('sha256Idx', 'sha256', { unique: false });
+        store.createIndex('fileKeyIdx', 'fileKey', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('settings')) {
+        db.createObjectStore('settings', { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains('uploadStatus')) {
+        db.createObjectStore('uploadStatus', { keyPath: 'photoId' });
+      }
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e.target.error);
+  });
+  return dbPromise;
+}
+
+function reqToPromise(req) {
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbPut(storeName, value) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).put(value);
+    tx.oncomplete = () => resolve(value);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+async function dbGet(storeName, key) {
+  const db = await openDb();
+  const tx = db.transaction(storeName, 'readonly');
+  return reqToPromise(tx.objectStore(storeName).get(key));
+}
+async function dbGetAll(storeName) {
+  const db = await openDb();
+  const tx = db.transaction(storeName, 'readonly');
+  return reqToPromise(tx.objectStore(storeName).getAll());
+}
+async function dbDelete(storeName, key) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbClear(storeName) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    tx.objectStore(storeName).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function findByIndex(storeName, indexName, value) {
+  const db = await openDb();
+  const tx = db.transaction(storeName, 'readonly');
+  return reqToPromise(tx.objectStore(storeName).index(indexName).get(value));
+}
+async function getAllByIndex(storeName, indexName, value) {
+  const db = await openDb();
+  const tx = db.transaction(storeName, 'readonly');
+  return reqToPromise(tx.objectStore(storeName).index(indexName).getAll(value));
+}
+
+/* ---------------------------- Einstellungen ---------------------------- */
+const DEFAULT_SETTINGS = {
+  theme: 'dark',
+  similarityThreshold: 90,
+  oneDriveClientId: '',
+  oneDriveTenant: 'common',
+  oneDriveTargetFolderPath: '/Bilder',
+  thumbnailSize: 320
+};
+
+async function getSettings() {
+  const row = await dbGet('settings', 'app-settings');
+  return row ? { ...DEFAULT_SETTINGS, ...row.value } : { ...DEFAULT_SETTINGS };
+}
+async function updateSettings(partial) {
+  const current = await getSettings();
+  const merged = { ...current, ...partial };
+  await dbPut('settings', { key: 'app-settings', value: merged });
+  return merged;
+}
+
+/* ---------------------------- Logging ---------------------------- */
+const logEntries = [];
+function log(level, message) {
+  const entry = { level, message, timestamp: Date.now() };
+  logEntries.push(entry);
+  if (logEntries.length > 300) logEntries.shift();
+  renderLogBox();
+  if (level === 'ERROR') console.error(message); else console.log(message);
+}
+function renderLogBox() {
+  const box = qs('log-box');
+  if (!box) return;
+  box.innerHTML = '';
+  for (const entry of logEntries.slice(-150)) {
+    const line = document.createElement('div');
+    line.className = `log-line level-${entry.level}`;
+    line.textContent = `[${new Date(entry.timestamp).toLocaleTimeString('de-DE')}] ${entry.message}`;
+    box.appendChild(line);
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ---------------------------- Hilfsfunktionen ---------------------------- */
+function qs(id) { return document.getElementById(id); }
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function formatBytes(bytes) {
+  if (bytes == null || isNaN(bytes)) return '–';
+  if (bytes === 0) return '0 B';
+  const units = ['B','KB','MB','GB','TB'];
+  const i = Math.min(units.length-1, Math.floor(Math.log(bytes)/Math.log(1024)));
+  return `${(bytes/Math.pow(1024,i)).toFixed(i===0?0:1)} ${units[i]}`;
+}
+function formatDate(ts) {
+  if (!ts) return '–';
+  return new Date(ts).toLocaleDateString('de-DE', { year:'numeric', month:'2-digit', day:'2-digit' });
+}
+function debounce(fn, wait) {
+  let t = null;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+function yieldToUI() { return new Promise((r) => setTimeout(r, 0)); }
+function makeId() {
+  return (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+}
+function showToast(message, type = 'info', timeout = 4200) {
+  const stack = qs('toast-stack');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  stack.appendChild(toast);
+  setTimeout(() => toast.remove(), timeout);
+}
+// 'error' auf <img> bubblet nicht - Capture-Phase am Dokument fängt es trotzdem ab.
+document.addEventListener('error', (e) => {
+  const t = e.target;
+  if (t && t.tagName === 'IMG' && t.classList.contains('thumb-img')) {
+    const wrap = t.parentElement;
+    t.remove();
+    if (wrap && !wrap.querySelector('.image-thumb-fallback')) {
+      const span = document.createElement('span');
+      span.className = 'image-thumb-fallback';
+      span.textContent = '🖼️';
+      wrap.appendChild(span);
+    }
+  }
+}, true);
+
+/* ---------------------------- Bild-Hashing (clientseitig) ---------------------------- */
+
+function bufferToHex(buffer) {
+  return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2,'0')).join('');
+}
+async function computeSha256(arrayBuffer) {
+  const digest = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  return bufferToHex(digest);
+}
+
+function loadImageElement(blob) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Bildformat kann von diesem Browser nicht dekodiert werden')); };
+    img.src = url;
+  });
+}
+
+/**
+ * Perceptual Hash (dHash, 64 Bit) + Bildmaße per <canvas>.
+ * Gleicher Algorithmus wie in der Desktop-Version: Bild auf 9x8 Pixel
+ * verkleinern, Helligkeitsunterschiede benachbarter Pixel als Bits kodieren.
+ * Läuft komplett lokal im Browser - es werden keine Bilddaten irgendwohin gesendet.
+ */
+async function analyzeImageBlob(blob) {
+  const img = await loadImageElement(blob);
+  try {
+    const width = img.naturalWidth;
+    const height = img.naturalHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = 9; canvas.height = 8;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 9, 8);
+    const data = ctx.getImageData(0, 0, 9, 8).data;
+
+    let bits = '';
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const i1 = (row*9+col)*4, i2 = (row*9+col+1)*4;
+        const l1 = 0.299*data[i1] + 0.587*data[i1+1] + 0.114*data[i1+2];
+        const l2 = 0.299*data[i2] + 0.587*data[i2+1] + 0.114*data[i2+2];
+        bits += l1 > l2 ? '1' : '0';
+      }
+    }
+    let phash = '';
+    for (let i = 0; i < 64; i += 4) phash += parseInt(bits.substr(i,4), 2).toString(16);
+    return { width, height, phash };
+  } finally {
+    URL.revokeObjectURL(img.src);
+  }
+}
+
+async function generateThumbnailBlob(blob, maxSize) {
+  const img = await loadImageElement(blob);
+  try {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const scale = Math.min(1, maxSize / Math.max(w, h, 1));
+    const tw = Math.max(1, Math.round(w*scale)), th = Math.max(1, Math.round(h*scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = tw; canvas.height = th;
+    canvas.getContext('2d').drawImage(img, 0, 0, tw, th);
+    return await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.78));
+  } finally {
+    URL.revokeObjectURL(img.src);
+  }
+}
+
+/* ---------------------------- Hamming-Distanz + BK-Baum ---------------------------- */
+
+function hammingDistanceHex(a, b) {
+  if (!a || !b || a.length !== b.length) return Infinity;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) {
+    let x = parseInt(a[i],16) ^ parseInt(b[i],16);
+    while (x) { d += x & 1; x >>= 1; }
+  }
+  return d;
+}
+
+class BKNode {
+  constructor(hash, item) { this.hash = hash; this.items = [item]; this.children = new Map(); }
+}
+class BKTree {
+  constructor(distanceFn) { this.distanceFn = distanceFn; this.root = null; }
+  add(hash, item) {
+    if (!this.root) { this.root = new BKNode(hash, item); return; }
+    let node = this.root;
+    for (;;) {
+      const d = this.distanceFn(hash, node.hash);
+      if (d === 0) { node.items.push(item); return; }
+      const child = node.children.get(d);
+      if (!child) { node.children.set(d, new BKNode(hash, item)); return; }
+      node = child;
+    }
+  }
+  search(hash, maxDistance) {
+    const results = [];
+    if (!this.root) return results;
+    const stack = [this.root];
+    while (stack.length) {
+      const node = stack.pop();
+      const d = this.distanceFn(hash, node.hash);
+      if (d <= maxDistance) for (const item of node.items) results.push({ item, distance: d });
+      const lo = d - maxDistance, hi = d + maxDistance;
+      for (const [cd, child] of node.children) if (cd >= lo && cd <= hi) stack.push(child);
+    }
+    return results;
+  }
+}
+class DisjointSet {
+  constructor() { this.parent = new Map(); }
+  find(x) {
+    if (!this.parent.has(x)) this.parent.set(x, x);
+    let r = this.parent.get(x);
+    if (r !== x) { r = this.find(r); this.parent.set(x, r); }
+    return r;
+  }
+  union(a, b) { const ra = this.find(a), rb = this.find(b); if (ra !== rb) this.parent.set(ra, rb); }
+}
+
+/* ---------------------------- Original-Vorschlag ---------------------------- */
+
+function copyLikelihoodScore(filename) {
+  const n = filename.toLowerCase();
+  let score = 0;
+  if (/(kopie|copy)/.test(n)) score += 10;
+  if (/\(\d+\)/.test(n)) score += 6;
+  if (/[-_]\d+$/.test(n.replace(/\.[a-z0-9]+$/,''))) score += 3;
+  if (/(klein|small|thumb|web|edit(ed)?)/.test(n)) score += 8;
+  score += n.length * 0.01;
+  return score;
+}
+function suggestOriginal(members) {
+  const sorted = [...members].sort((a,b) => {
+    const resA = (a.width||0)*(a.height||0), resB = (b.width||0)*(b.height||0);
+    if (resB !== resA) return resB - resA;
+    if ((b.size||0) !== (a.size||0)) return (b.size||0)-(a.size||0);
+    if ((a.mtime||0) !== (b.mtime||0)) return (a.mtime||0)-(b.mtime||0);
+    return copyLikelihoodScore(a.filename) - copyLikelihoodScore(b.filename);
+  });
+  return { original: sorted[0], copies: sorted.slice(1) };
+}
+
+/* ---------------------------- Foto-Import ---------------------------- */
+
+const state = {
+  view: 'start',
+  settings: null,
+  photos: { all: [], search: '', sort: 'filename', page: 1, pageSize: 60 },
+  selectedIds: new Set(),
+  uploadStatusByPhotoId: new Map(),
+  duplicatesTab: 'exact',
+  similarityThreshold: 90,
+  oneDrive: { connected: false },
+  oneDriveBrowsePath: '/',
+  uploadRunning: false,
+  uploadCancelled: false,
+  thumbUrls: new Map() // photoId -> object URL (für sauberes Aufräumen)
+};
+
+qs('file-input').addEventListener('change', async (e) => {
+  const files = e.target.files;
+  if (files && files.length > 0) await importFiles(files);
+  e.target.value = ''; // erlaubt erneutes Auswählen derselben Datei später
+});
+qs('btn-add-photos').addEventListener('click', () => qs('file-input').click());
+qs('btn-quick-import').addEventListener('click', () => qs('file-input').click());
+
+async function importFiles(fileList) {
+  const files = Array.from(fileList);
+  const settings = await getSettings();
+  const wrap = qs('import-progress-wrap');
+  wrap.classList.remove('hidden');
+  let processed = 0, imported = 0, skipped = 0, errors = 0;
+  const total = files.length;
+
+  for (const file of files) {
+    qs('import-progress-caption').textContent = `Verarbeite: ${file.name}`;
+    try {
+      const fileKey = `${file.name}::${file.size}::${file.lastModified}`;
+      const alreadyImported = await findByIndex('photos', 'fileKeyIdx', fileKey);
+      if (alreadyImported) {
+        skipped++;
+      } else {
+        const arrayBuffer = await file.arrayBuffer();
+        const sha256 = await computeSha256(arrayBuffer);
+        const blob = new Blob([arrayBuffer], { type: file.type || 'image/jpeg' });
+
+        let width = null, height = null, phash = null;
+        try {
+          const analysis = await analyzeImageBlob(blob);
+          width = analysis.width; height = analysis.height; phash = analysis.phash;
+        } catch (err) {
+          log('WARN', `Perceptual Hash fehlgeschlagen für ${file.name}: ${err.message}`);
+        }
+        let thumbBlob = null;
+        try { thumbBlob = await generateThumbnailBlob(blob, settings.thumbnailSize); } catch (err) { /* nicht kritisch */ }
+
+        await dbPut('photos', {
+          id: makeId(), filename: file.name, fileKey, size: file.size,
+          mtime: file.lastModified || Date.now(), width, height, sha256, phash,
+          blob, thumbBlob, importedAt: Date.now()
+        });
+        imported++;
+      }
+    } catch (err) {
+      errors++;
+      log('ERROR', `Import fehlgeschlagen für ${file.name}: ${err.message}`);
+      if (/quota/i.test(err.message)) {
+        showToast('Speicher voll: Bitte in den Einstellungen nicht mehr benötigte Fotos entfernen.', 'error', 7000);
+        break;
+      }
+    }
+    processed++;
+    const pct = Math.round((processed/total)*100);
+    qs('import-progress-fill').style.width = pct + '%';
+    qs('import-progress-label').textContent = `${processed} / ${total}`;
+    if (processed % 4 === 0) await yieldToUI();
+  }
+
+  qs('import-progress-caption').textContent = `Fertig: ${imported} importiert, ${skipped} bereits vorhanden, ${errors} Fehler.`;
+  showToast(`${imported} Foto(s) importiert${skipped ? `, ${skipped} bereits vorhanden` : ''}${errors ? `, ${errors} Fehler` : ''}.`, errors ? 'error' : 'success');
+  setTimeout(() => wrap.classList.add('hidden'), 2500);
+
+  await refreshStartStats();
+  if (state.view === 'photos') await loadPhotosView();
+}
+
+/* ---------------------------- Navigation ---------------------------- */
+
+const VIEW_TITLES = { start: 'Start', photos: 'Fotos', duplicates: 'Duplikate', onedrive: 'OneDrive', settings: 'Mehr' };
+
+function switchView(view) {
+  state.view = view;
+  document.querySelectorAll('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('.view').forEach((s) => s.classList.toggle('active', s.id === `view-${view}`));
+  qs('view-title').textContent = VIEW_TITLES[view];
+  qs('content').scrollTop = 0;
+
+  if (view === 'start') refreshStartStats();
+  if (view === 'photos') loadPhotosView();
+  if (view === 'duplicates') loadDuplicates(state.duplicatesTab);
+  if (view === 'onedrive') { refreshOneDriveUI(); browseOneDriveFolder(state.oneDriveBrowsePath); updateUploadSelectionCaption(); }
+  if (view === 'settings') populateSettingsForm();
+}
+document.querySelectorAll('.nav-btn').forEach((btn) => btn.addEventListener('click', () => switchView(btn.dataset.view)));
+
+/* ---------------------------- Theme ---------------------------- */
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  qs('theme-switch').classList.toggle('on', theme === 'dark');
+  qs('theme-label').textContent = theme === 'dark' ? 'Dunkles Design' : 'Helles Design';
+}
+qs('theme-switch').addEventListener('click', async () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  state.settings = await updateSettings({ theme: next });
+});
+
+/* ---------------------------- Start / Dashboard ---------------------------- */
+
+async function refreshStartStats() {
+  const photos = await dbGetAll('photos');
+  qs('stat-total').textContent = photos.length.toLocaleString('de-DE');
+
+  const bySha = new Map();
+  let totalBytes = 0;
+  for (const p of photos) {
+    totalBytes += (p.size||0) + (p.thumbBlob ? p.thumbBlob.size : 0);
+    if (!p.sha256) continue;
+    if (!bySha.has(p.sha256)) bySha.set(p.sha256, []);
+    bySha.get(p.sha256).push(p);
+  }
+  let exactCount = 0, exactSavable = 0;
+  for (const group of bySha.values()) {
+    if (group.length > 1) {
+      exactCount += group.length - 1;
+      const totalSize = group.reduce((s,p) => s+(p.size||0), 0);
+      exactSavable += totalSize - totalSize/group.length;
+    }
+  }
+  qs('stat-exact').textContent = exactCount.toLocaleString('de-DE');
+  qs('stat-savable').textContent = formatBytes(Math.round(exactSavable));
+
+  const similarGroups = clusterSimilar(photos, state.similarityThreshold);
+  const similarCount = similarGroups.reduce((s,g) => s+g.count, 0);
+  qs('stat-similar').textContent = similarCount.toLocaleString('de-DE');
+
+  const uploadStatuses = await dbGetAll('uploadStatus');
+  const inOneDrive = uploadStatuses.filter((s) => s.status === 'exists' || s.status === 'uploaded').length;
+  qs('stat-onedrive').textContent = inOneDrive.toLocaleString('de-DE');
+
+  qs('stat-storage').textContent = formatBytes(totalBytes);
+
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const est = await navigator.storage.estimate();
+      qs('storage-usage-text').textContent = `${formatBytes(est.usage)} von ${formatBytes(est.quota)} Browser-Speicher genutzt (${photos.length} Fotos).`;
+    }
+  } catch (err) { /* nicht kritisch */ }
+}
+
+/* ---------------------------- Fotos-Ansicht ---------------------------- */
+
+async function loadPhotosView() {
+  const all = await dbGetAll('photos');
+  let filtered = all;
+  if (state.photos.search) {
+    const q = state.photos.search.toLowerCase();
+    filtered = filtered.filter((p) => p.filename.toLowerCase().includes(q));
+  }
+  const sortKey = state.photos.sort;
+  filtered.sort((a,b) => {
+    if (sortKey === 'size') return (b.size||0)-(a.size||0);
+    if (sortKey === 'mtime') return (b.mtime||0)-(a.mtime||0);
+    return a.filename.localeCompare(b.filename);
+  });
+  state.photos.all = filtered;
+  renderPhotosGrid();
+  renderPhotosPagination();
+}
+
+function revokeThumbUrls() {
+  for (const url of state.thumbUrls.values()) URL.revokeObjectURL(url);
+  state.thumbUrls.clear();
+}
+
+function renderPhotosGrid() {
+  revokeThumbUrls();
+  const grid = qs('photos-grid');
+  grid.innerHTML = '';
+  const { page, pageSize } = state.photos;
+  const pageItems = state.photos.all.slice((page-1)*pageSize, page*pageSize);
+
+  if (state.photos.all.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">🗂️</div><h4>Keine Fotos</h4><p>Tippe oben auf „+ Fotos hinzufügen", um Bilder aus deiner Galerie zu importieren.</p></div>`;
+    return;
+  }
+
+  for (const photo of pageItems) {
+    const card = document.createElement('div');
+    card.className = 'image-card' + (state.selectedIds.has(photo.id) ? ' selected' : '');
+    card.dataset.id = photo.id;
+
+    const thumbWrap = document.createElement('div');
+    thumbWrap.className = 'image-thumb-wrap';
+    if (photo.thumbBlob) {
+      const url = URL.createObjectURL(photo.thumbBlob);
+      state.thumbUrls.set(photo.id, url);
+      const img = document.createElement('img');
+      img.className = 'thumb-img';
+      img.loading = 'lazy';
+      img.src = url;
+      thumbWrap.appendChild(img);
+    } else {
+      const span = document.createElement('span');
+      span.className = 'image-thumb-fallback';
+      span.textContent = '🖼️';
+      thumbWrap.appendChild(span);
+    }
+
+    const select = document.createElement('div');
+    select.className = 'image-select';
+
+    const fname = document.createElement('div');
+    fname.className = 'image-fname';
+    fname.textContent = photo.filename;
+
+    card.appendChild(thumbWrap);
+    card.appendChild(select);
+    card.appendChild(fname);
+    card.addEventListener('click', () => toggleSelection(photo.id, card));
+    grid.appendChild(card);
+  }
+  applyUploadBadges();
+}
+
+async function applyUploadBadges() {
+  const labels = { exists: '✓', uploaded: '✓', similar: '⚠', unknown: '?', error: '⚠' };
+  document.querySelectorAll('.image-card[data-id]').forEach(async (card) => {
+    const id = card.dataset.id;
+    let status = state.uploadStatusByPhotoId.get(id);
+    if (!status) {
+      const row = await dbGet('uploadStatus', id).catch(() => null);
+      if (row) { status = row.status; state.uploadStatusByPhotoId.set(id, status); }
+    }
+    const old = card.querySelector('.upload-badge');
+    if (old) old.remove();
+    if (!status) return;
+    const span = document.createElement('span');
+    span.className = `upload-badge ${status}`;
+    span.textContent = labels[status] || status;
+    card.appendChild(span);
+  });
+}
+
+function toggleSelection(id, cardEl) {
+  if (state.selectedIds.has(id)) { state.selectedIds.delete(id); cardEl.classList.remove('selected'); }
+  else { state.selectedIds.add(id); cardEl.classList.add('selected'); }
+  updateSelectionBar();
+  updateUploadSelectionCaption();
+}
+function updateSelectionBar() {
+  const bar = qs('selection-bar');
+  const n = state.selectedIds.size;
+  bar.classList.toggle('visible', n > 0);
+  qs('selection-count-text').textContent = `${n} ausgewählt`;
+}
+qs('btn-selection-clear').addEventListener('click', () => {
+  state.selectedIds.clear();
+  updateSelectionBar();
+  updateUploadSelectionCaption();
+  renderPhotosGrid();
+});
+qs('btn-selection-upload').addEventListener('click', () => switchView('onedrive'));
+
+function renderPhotosPagination() {
+  const wrap = qs('photos-pagination');
+  wrap.innerHTML = '';
+  const totalPages = Math.max(1, Math.ceil(state.photos.all.length / state.photos.pageSize));
+  const prev = document.createElement('button');
+  prev.className = 'btn btn-sm'; prev.textContent = '← Zurück';
+  prev.disabled = state.photos.page <= 1;
+  prev.addEventListener('click', () => { state.photos.page--; renderPhotosGrid(); renderPhotosPagination(); });
+  const info = document.createElement('span');
+  info.textContent = `${state.photos.page} / ${totalPages}`;
+  const next = document.createElement('button');
+  next.className = 'btn btn-sm'; next.textContent = 'Weiter →';
+  next.disabled = state.photos.page >= totalPages;
+  next.addEventListener('click', () => { state.photos.page++; renderPhotosGrid(); renderPhotosPagination(); });
+  wrap.appendChild(prev); wrap.appendChild(info); wrap.appendChild(next);
+}
+qs('photos-search').addEventListener('input', debounce((e) => {
+  state.photos.search = e.target.value; state.photos.page = 1; loadPhotosView();
+}, 300));
+qs('photos-sort').addEventListener('change', (e) => { state.photos.sort = e.target.value; loadPhotosView(); });
+
+/* ---------------------------- Duplikate ---------------------------- */
+
+qs('tab-exact').addEventListener('click', () => switchDupTab('exact'));
+qs('tab-similar').addEventListener('click', () => switchDupTab('similar'));
+function switchDupTab(tab) {
+  state.duplicatesTab = tab;
+  qs('tab-exact').classList.toggle('btn-primary', tab === 'exact');
+  qs('tab-similar').classList.toggle('btn-primary', tab === 'similar');
+  qs('threshold-row').style.visibility = tab === 'similar' ? 'visible' : 'hidden';
+  loadDuplicates(tab);
+}
+qs('threshold-slider').addEventListener('input', debounce((e) => {
+  state.similarityThreshold = Number(e.target.value);
+  qs('threshold-value').textContent = state.similarityThreshold + '%';
+  if (state.duplicatesTab === 'similar') loadDuplicates('similar');
+}, 250));
+
+function clusterExact(photos) {
+  const bySha = new Map();
+  for (const p of photos) {
+    if (!p.sha256) continue;
+    if (!bySha.has(p.sha256)) bySha.set(p.sha256, []);
+    bySha.get(p.sha256).push(p);
+  }
+  const groups = [];
+  for (const members of bySha.values()) {
+    if (members.length < 2) continue;
+    const { original, copies } = suggestOriginal(members);
+    const totalSize = members.reduce((s,m) => s+(m.size||0), 0);
+    groups.push({ count: members.length, totalSize, savableBytes: totalSize - totalSize/members.length, members, suggestedOriginal: original, suggestedCopies: copies });
+  }
+  groups.sort((a,b) => b.savableBytes - a.savableBytes);
+  return groups;
+}
+
+function clusterSimilar(photos, thresholdPercent) {
+  const maxDistance = Math.round(((100 - thresholdPercent) / 100) * 64);
+  const withHash = photos.filter((p) => p.phash);
+  const tree = new BKTree(hammingDistanceHex);
+  const dsu = new DisjointSet();
+  for (const p of withHash) {
+    for (const n of tree.search(p.phash, maxDistance)) dsu.union(p.id, n.item.id);
+    tree.add(p.phash, p);
+  }
+  const groupsById = new Map();
+  for (const p of withHash) {
+    const root = dsu.find(p.id);
+    if (!groupsById.has(root)) groupsById.set(root, []);
+    groupsById.get(root).push(p);
+  }
+  const results = [];
+  for (const members of groupsById.values()) {
+    if (members.length < 2) continue;
+    const distinctSha = new Set(members.map((m) => m.sha256));
+    if (distinctSha.size < 2) continue; // reine Byte-Duplikate -> gehört zu "Exakt"
+    const { original, copies } = suggestOriginal(members);
+    const withSim = members.map((m) => ({ ...m, similarityToOriginal: m.id === original.id ? 100 : Math.max(0, Math.round((1 - hammingDistanceHex(m.phash, original.phash)/64)*100)) }));
+    const totalSize = members.reduce((s,m) => s+(m.size||0), 0);
+    const largest = Math.max(...members.map((m) => m.size||0));
+    results.push({ count: members.length, totalSize, savableBytes: Math.max(0, totalSize-largest), members: withSim, suggestedOriginal: original, suggestedCopies: copies });
+  }
+  results.sort((a,b) => b.savableBytes - a.savableBytes);
+  return results;
+}
+
+async function loadDuplicates(tab) {
+  const list = qs('duplicate-list');
+  list.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Berechne…</p></div>';
+  const photos = await dbGetAll('photos');
+  const groups = tab === 'exact' ? clusterExact(photos) : clusterSimilar(photos, state.similarityThreshold);
+  renderDuplicateList(groups, tab);
+}
+
+function renderDuplicateList(groups, tab) {
+  const list = qs('duplicate-list');
+  list.innerHTML = '';
+  if (!groups.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">✨</div><h4>Keine ${tab==='exact'?'exakten Duplikate':'ähnlichen Bilder'}</h4><p>Importiere weitere Fotos oder passe den Schwellenwert an.</p></div>`;
+    return;
+  }
+  for (const group of groups) {
+    const original = group.suggestedOriginal;
+    const stackMembers = [original, ...group.suggestedCopies].slice(0,3);
+    const row = document.createElement('div');
+    row.className = 'dup-group';
+
+    const stack = document.createElement('div');
+    stack.className = 'photo-stack';
+    stackMembers.forEach((m) => {
+      const tile = document.createElement('div');
+      tile.className = 'stack-tile';
+      if (m.thumbBlob) {
+        const url = URL.createObjectURL(m.thumbBlob);
+        const img = document.createElement('img');
+        img.className = 'thumb-img';
+        img.src = url;
+        tile.appendChild(img);
+      }
+      stack.appendChild(tile);
+    });
+    const ring = document.createElement('div');
+    if (tab === 'exact') { ring.className = 'similarity-ring exact'; ring.textContent = '100%'; }
+    else {
+      const sims = group.members.filter((m) => m.id !== original.id).map((m) => m.similarityToOriginal);
+      ring.className = 'similarity-ring';
+      ring.textContent = (sims.length ? Math.min(...sims) : 100) + '%';
+    }
+    stack.appendChild(ring);
+
+    const info = document.createElement('div');
+    info.innerHTML = `
+      <div class="dup-title">${group.count} Dateien</div>
+      <div class="dup-sub">${escapeHtml(group.members.slice(0,3).map((m)=>m.filename).join(', '))}${group.members.length>3?` +${group.members.length-3}`:''}</div>
+      <div class="dup-original">⭐ <b>${escapeHtml(original.filename)}</b></div>
+      <div class="dup-savings">${formatBytes(group.savableBytes)} einsparbar</div>
+    `;
+    row.appendChild(stack);
+    row.appendChild(info);
+    row.addEventListener('click', () => openCompareModal(group, tab));
+    list.appendChild(row);
+  }
+}
+
+function openCompareModal(group, tab) {
+  qs('compare-modal-title').textContent = `${group.count} ${tab==='exact'?'identische':'ähnliche'} Fotos`;
+  const grid = qs('compare-grid');
+  grid.innerHTML = '';
+  const originalId = group.suggestedOriginal.id;
+  for (const m of group.members) {
+    const card = document.createElement('div');
+    card.className = 'compare-card' + (m.id === originalId ? ' is-original' : '');
+    if (m.id === originalId) {
+      const tag = document.createElement('span');
+      tag.className = 'original-tag'; tag.textContent = '⭐ Original';
+      card.appendChild(tag);
+    }
+    if (m.thumbBlob) {
+      const url = URL.createObjectURL(m.thumbBlob);
+      const img = document.createElement('img'); img.className='thumb-img'; img.src = url;
+      card.appendChild(img);
+    }
+    const meta = document.createElement('div');
+    meta.className = 'compare-meta';
+    const sim = m.similarityToOriginal != null ? ` · ${m.similarityToOriginal}%` : '';
+    meta.innerHTML = `<div class="fname">${escapeHtml(m.filename)}</div><div class="fmeta">${m.width||'?'}×${m.height||'?'} · ${formatBytes(m.size)} · ${formatDate(m.mtime)}${sim}</div>`;
+    card.appendChild(meta);
+    grid.appendChild(card);
+  }
+  qs('compare-modal').classList.add('open');
+}
+qs('compare-modal-close').addEventListener('click', () => qs('compare-modal').classList.remove('open'));
+qs('compare-modal').addEventListener('click', (e) => { if (e.target.id === 'compare-modal') qs('compare-modal').classList.remove('open'); });
+
+/* ---------------------------- OneDrive: MSAL + Graph ---------------------------- */
+
+let msalInstance = null;
+let msalAccount = null;
+const GRAPH_SCOPES = ['Files.ReadWrite', 'User.Read'];
+const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
+
+function getRedirectUri() { return window.location.origin + window.location.pathname; }
+
+async function initMsal() {
+  const settings = await getSettings();
+  if (!settings.oneDriveClientId) return;
+  msalInstance = new msal.PublicClientApplication({
+    auth: {
+      clientId: settings.oneDriveClientId,
+      authority: `https://login.microsoftonline.com/${settings.oneDriveTenant || 'common'}`,
+      redirectUri: getRedirectUri()
+    },
+    cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
+  });
+  await msalInstance.initialize();
+  try {
+    const response = await msalInstance.handleRedirectPromise();
+    if (response && response.account) {
+      msalAccount = response.account;
+      log('INFO', `Mit OneDrive verbunden: ${msalAccount.username}`);
+    } else {
+      const accounts = msalInstance.getAllAccounts();
+      if (accounts.length > 0) msalAccount = accounts[0];
+    }
+  } catch (err) {
+    log('ERROR', `OneDrive-Anmeldung fehlgeschlagen: ${err.message}`);
+    showToast(`Anmeldung fehlgeschlagen: ${err.message}`, 'error');
+  }
+}
+
+async function connectOneDrive() {
+  if (!msalInstance) throw new Error('Bitte zuerst Client-ID in den Einstellungen eintragen.');
+  await msalInstance.loginRedirect({ scopes: GRAPH_SCOPES });
+}
+async function disconnectOneDrive() {
+  if (!msalInstance || !msalAccount) return;
+  await msalInstance.logoutRedirect({ account: msalAccount });
+}
+async function getAccessToken() {
+  if (!msalInstance) throw new Error('OneDrive ist nicht konfiguriert (Client-ID fehlt).');
+  if (!msalAccount) throw new Error('Nicht mit OneDrive verbunden.');
+  try {
+    const result = await msalInstance.acquireTokenSilent({ scopes: GRAPH_SCOPES, account: msalAccount });
+    return result.accessToken;
+  } catch (err) {
+    await msalInstance.acquireTokenRedirect({ scopes: GRAPH_SCOPES, account: msalAccount });
+    throw new Error('Sitzung abgelaufen, du wirst zur erneuten Anmeldung weitergeleitet…');
+  }
+}
+
+async function graphFetch(path, options = {}) {
+  const token = await getAccessToken();
+  const res = await fetch(`${GRAPH_BASE}${path}`, { ...options, headers: { ...(options.headers||{}), Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Graph-Fehler (${res.status}): ${text.slice(0,180)}`);
+  }
+  return res;
+}
+function encodeGraphPath(p) { return '/' + (p||'').split('/').filter(Boolean).map(encodeURIComponent).join('/'); }
+function isRootPath(p) { return !p || p === '/' || p.trim() === ''; }
+
+async function getItemByPath(itemPath) {
+  const endpoint = isRootPath(itemPath) ? '/me/drive/root' : `/me/drive/root:${encodeGraphPath(itemPath)}`;
+  try { const res = await graphFetch(endpoint); return await res.json(); }
+  catch (err) { if (/\(404\)/.test(err.message)) return null; throw err; }
+}
+async function listChildren(folderPath) {
+  const endpoint = isRootPath(folderPath) ? '/me/drive/root/children?$select=id,name,size,file,folder' : `/me/drive/root:${encodeGraphPath(folderPath)}:/children?$select=id,name,size,file,folder`;
+  let res = await graphFetch(endpoint);
+  let data = await res.json();
+  let results = (data.value || []).slice();
+  while (data['@odata.nextLink']) {
+    const token = await getAccessToken();
+    const nextRes = await fetch(data['@odata.nextLink'], { headers: { Authorization: `Bearer ${token}` } });
+    data = await nextRes.json();
+    results = results.concat(data.value || []);
+  }
+  return results;
+}
+async function ensureFolderPath(folderPath) {
+  const segments = (folderPath||'').split('/').filter(Boolean);
+  let parentId = 'root', built = '';
+  for (const seg of segments) {
+    built += '/' + seg;
+    const existing = await getItemByPath(built);
+    if (existing) { parentId = existing.id; continue; }
+    const res = await graphFetch(`/me/drive/items/${parentId}/children`, {
+      method: 'POST', headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ name: seg, folder: {}, '@microsoft.graph.conflictBehavior':'rename' })
+    });
+    parentId = (await res.json()).id;
+  }
+  return { id: parentId };
+}
+async function uploadSmallFile(parentFolderPath, filename, blob) {
+  const targetPath = `${parentFolderPath.replace(/\/$/,'')}/${filename}`;
+  const res = await graphFetch(`/me/drive/root:${encodeGraphPath(targetPath)}:/content`, { method:'PUT', headers:{'Content-Type':'application/octet-stream'}, body: blob });
+  return res.json();
+}
+async function createUploadSession(parentFolderPath, filename) {
+  const targetPath = `${parentFolderPath.replace(/\/$/,'')}/${filename}`;
+  const res = await graphFetch(`/me/drive/root:${encodeGraphPath(targetPath)}:/createUploadSession`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ item: { '@microsoft.graph.conflictBehavior':'rename', name: filename } })
+  });
+  return res.json();
+}
+const CHUNK_SIZE = 327680 * 16; // 5.242.880 Bytes
+async function uploadWithSession(parentFolderPath, filename, blob, onProgress) {
+  const session = await createUploadSession(parentFolderPath, filename);
+  const uploadUrl = session.uploadUrl;
+  const totalSize = blob.size;
+  let uploaded = 0, createdItem = null;
+  while (uploaded < totalSize) {
+    const start = uploaded, end = Math.min(uploaded+CHUNK_SIZE, totalSize)-1;
+    const chunk = blob.slice(start, end+1);
+    let attempt = 0, done = false;
+    while (!done) {
+      attempt++;
+      try {
+        const res = await fetch(uploadUrl, { method:'PUT', headers:{'Content-Length':String(end-start+1),'Content-Range':`bytes ${start}-${end}/${totalSize}`}, body: chunk });
+        if (res.status === 202) done = true;
+        else if (res.status === 200 || res.status === 201) { createdItem = await res.json(); done = true; }
+        else if (res.status >= 500 && attempt <= 3) await sleep(500*attempt);
+        else { const t = await res.text().catch(()=>''); throw new Error(`Upload fehlgeschlagen (${res.status}): ${t.slice(0,180)}`); }
+      } catch (err) {
+        if (attempt > 3) throw err;
+        await sleep(500*attempt);
+      }
+    }
+    uploaded = end + 1;
+    onProgress(uploaded, totalSize);
+  }
+  return createdItem;
+}
+
+async function buildRemoteIndex(folderPath) {
+  let children;
+  try { children = await listChildren(folderPath); }
+  catch (err) {
+    if (/\(404\)/.test(err.message)) return { byNameSize:new Map(), bySha256:new Map(), folderExists:false };
+    throw err;
+  }
+  const byNameSize = new Map(), bySha256 = new Map();
+  for (const item of children) {
+    if (!item.file) continue;
+    byNameSize.set(`${item.name.toLowerCase()}::${item.size}`, item);
+    const hashes = item.file.hashes || {};
+    if (hashes.sha256Hash) bySha256.set(hashes.sha256Hash.toLowerCase(), item);
+  }
+  return { byNameSize, bySha256, folderExists: true };
+}
+// Ehrliche Unsicherheitsbehandlung wie in der Desktop-Version: "identisch" wird
+// nur gemeldet, wenn OneDrive tatsächlich einen SHA-256-Hash liefert.
+function checkAgainstRemote(photo, remoteIndex) {
+  if (!remoteIndex.folderExists) return { status:'unknown', detail:'Zielordner existiert noch nicht.' };
+  if (photo.sha256 && remoteIndex.bySha256.has(photo.sha256.toLowerCase())) {
+    return { status:'exists', detail:'SHA-256-Übereinstimmung.', remoteItem: remoteIndex.bySha256.get(photo.sha256.toLowerCase()) };
+  }
+  const key = `${photo.filename.toLowerCase()}::${photo.size}`;
+  if (remoteIndex.byNameSize.has(key)) return { status:'similar', detail:'Name+Größe stimmen überein, Inhalt nicht verifiziert.', remoteItem: remoteIndex.byNameSize.get(key) };
+  return { status:'pending', detail:'Keine Übereinstimmung.' };
+}
+
+async function setUploadStatus(photoId, status, detail) {
+  await dbPut('uploadStatus', { photoId, status, detail, updatedAt: Date.now() });
+  state.uploadStatusByPhotoId.set(photoId, status);
+}
+
+async function uploadPhotos(photoIds, onProgress, isCancelled) {
+  const settings = await getSettings();
+  const targetFolderPath = settings.oneDriveTargetFolderPath || '/Bilder';
+  await ensureFolderPath(targetFolderPath);
+  const remoteIndex = await buildRemoteIndex(targetFolderPath);
+  let done = 0, uploaded = 0, skipped = 0, errors = 0;
+  const total = photoIds.length;
+
+  for (const id of photoIds) {
+    if (isCancelled()) break;
+    const photo = await dbGet('photos', id);
+    if (!photo) { done++; continue; }
+    const check = checkAgainstRemote(photo, remoteIndex);
+    if (check.status === 'exists') {
+      await setUploadStatus(id, 'exists', check.detail);
+      skipped++; done++;
+      onProgress({ done, total, filename: photo.filename, status:'exists', fileProgress:100 });
+      continue;
+    }
+    try {
+      const isSmall = photo.size < 4*1024*1024;
+      const onChunk = (u,t) => onProgress({ done, total, filename: photo.filename, status:'uploading', fileProgress: Math.round(u/t*100) });
+      if (isSmall) { await uploadSmallFile(targetFolderPath, photo.filename, photo.blob); onChunk(photo.size, photo.size); }
+      else await uploadWithSession(targetFolderPath, photo.filename, photo.blob, onChunk);
+      await setUploadStatus(id, 'uploaded', 'Erfolgreich hochgeladen');
+      uploaded++;
+    } catch (err) {
+      await setUploadStatus(id, 'error', err.message);
+      log('ERROR', `Upload von ${photo.filename} fehlgeschlagen: ${err.message}`);
+      errors++;
+    }
+    done++;
+    onProgress({ done, total, filename: photo.filename, status:'done', fileProgress:100 });
+  }
+  return { total, uploaded, skipped, errors };
+}
+
+/* ---------------------------- OneDrive-Ansicht ---------------------------- */
+
+async function refreshOneDriveUI() {
+  const connected = !!msalAccount;
+  state.oneDrive = { connected, username: msalAccount && msalAccount.username, name: msalAccount && msalAccount.name };
+  qs('onedrive-status-pill').classList.toggle('connected', connected);
+  qs('onedrive-status-text').textContent = connected ? 'Verbunden' : 'Getrennt';
+  qs('btn-onedrive-connect').classList.toggle('hidden', connected);
+  qs('btn-onedrive-disconnect').classList.toggle('hidden', !connected);
+  qs('account-avatar').textContent = connected ? (msalAccount.name || msalAccount.username || '?').slice(0,1).toUpperCase() : '?';
+  qs('account-name').textContent = connected ? (msalAccount.name || msalAccount.username) : 'Nicht verbunden';
+  qs('account-email').textContent = connected ? msalAccount.username : 'Mit Microsoft-Konto anmelden';
+}
+qs('btn-onedrive-connect').addEventListener('click', async () => {
+  try { await connectOneDrive(); } catch (err) { showToast(err.message, 'error'); }
+});
+qs('btn-onedrive-disconnect').addEventListener('click', async () => {
+  if (!confirm('Wirklich von OneDrive trennen?')) return;
+  try { await disconnectOneDrive(); } catch (err) { showToast(err.message, 'error'); }
+});
+
+async function browseOneDriveFolder(folderPath) {
+  qs('onedrive-target-path').textContent = folderPath;
+  state.oneDriveBrowsePath = folderPath;
+}
+qs('btn-browse-folders').addEventListener('click', async () => {
+  const list = qs('onedrive-folder-list');
+  if (!msalAccount) { showToast('Bitte zuerst mit OneDrive verbinden.', 'error'); return; }
+  list.innerHTML = '<div class="text-muted" style="font-size:12px;padding:8px 0;">Lade…</div>';
+  try {
+    const folders = await listChildren(state.oneDriveBrowsePath);
+    list.innerHTML = '';
+    const selectRow = document.createElement('div');
+    selectRow.className = 'folder-tree-item'; selectRow.style.fontWeight = '700';
+    selectRow.textContent = `✓ Diesen Ordner wählen (${state.oneDriveBrowsePath})`;
+    selectRow.addEventListener('click', async () => {
+      state.settings = await updateSettings({ oneDriveTargetFolderPath: state.oneDriveBrowsePath });
+      showToast(`Zielordner gesetzt: ${state.oneDriveBrowsePath}`, 'success');
+    });
+    list.appendChild(selectRow);
+    if (state.oneDriveBrowsePath !== '/' ) {
+      const upRow = document.createElement('div');
+      upRow.className = 'folder-tree-item';
+      const parent = state.oneDriveBrowsePath.split('/').slice(0,-1).join('/') || '/';
+      upRow.textContent = '⬆ Übergeordneter Ordner';
+      upRow.addEventListener('click', () => { browseOneDriveFolder(parent); qs('btn-browse-folders').click(); });
+      list.appendChild(upRow);
+    }
+    for (const folder of folders.filter((f) => f.folder)) {
+      const row = document.createElement('div');
+      row.className = 'folder-tree-item';
+      row.textContent = `📁 ${folder.name}`;
+      row.addEventListener('click', () => {
+        const next = (state.oneDriveBrowsePath === '/' ? '' : state.oneDriveBrowsePath) + '/' + folder.name;
+        browseOneDriveFolder(next);
+        qs('btn-browse-folders').click();
+      });
+      list.appendChild(row);
+    }
+  } catch (err) {
+    list.innerHTML = `<div class="text-muted" style="font-size:12px;">${escapeHtml(err.message)}</div>`;
+  }
+});
+
+function updateUploadSelectionCaption() {
+  const n = state.selectedIds.size;
+  qs('upload-selection-caption').textContent = n === 0 ? 'Wähle Fotos in der Ansicht „Fotos" aus.' : `${n} Foto(s) zum Hochladen ausgewählt.`;
+}
+const uploadFileRows = new Map();
+qs('btn-start-upload').addEventListener('click', async () => {
+  const ids = Array.from(state.selectedIds);
+  if (ids.length === 0) { showToast('Bitte zuerst Fotos auswählen.', 'error'); return; }
+  if (!msalAccount) { showToast('Bitte zuerst mit OneDrive verbinden.', 'error'); return; }
+  if (state.uploadRunning) return;
+  state.uploadRunning = true; state.uploadCancelled = false;
+  uploadFileRows.clear();
+  qs('upload-file-list').innerHTML = ''; qs('upload-error-list').innerHTML = '';
+  qs('btn-start-upload').disabled = true;
+  qs('btn-cancel-upload').classList.remove('hidden');
+  qs('upload-progress-wrap').classList.remove('hidden');
+  qs('upload-progress-fill').style.width = '0%';
+
+  try {
+    const result = await uploadPhotos(ids, (p) => {
+      const pct = p.total > 0 ? Math.round((p.done/p.total)*100) : 0;
+      qs('upload-progress-fill').style.width = pct + '%';
+      qs('upload-progress-label').textContent = `${p.done} / ${p.total}`;
+      qs('upload-progress-caption').textContent = `${p.filename} — ${p.status==='exists'?'bereits vorhanden':p.status==='uploading'?p.fileProgress+'%':'fertig'}`;
+      let row = uploadFileRows.get(p.filename);
+      if (!row && uploadFileRows.size < 50) {
+        row = document.createElement('div'); row.className = 'upload-file-row';
+        row.innerHTML = '<span class="fname"></span><span class="fstatus"></span>';
+        uploadFileRows.set(p.filename, row);
+        qs('upload-file-list').appendChild(row);
+      }
+      if (row) {
+        row.querySelector('.fname').textContent = p.filename;
+        row.querySelector('.fstatus').textContent = p.status==='exists'?'✓ vorhanden':p.status==='uploading'?`↑ ${p.fileProgress}%`:'✓ fertig';
+      }
+      applyUploadBadges();
+    }, () => state.uploadCancelled);
+    qs('upload-progress-caption').textContent = `Fertig: ${result.uploaded} hochgeladen, ${result.skipped} übersprungen, ${result.errors} Fehler.`;
+    showToast(`Upload fertig: ${result.uploaded} hochgeladen, ${result.skipped} übersprungen, ${result.errors} Fehler.`, result.errors ? 'error' : 'success');
+  } catch (err) {
+    showToast(`Upload fehlgeschlagen: ${err.message}`, 'error');
+  } finally {
+    state.uploadRunning = false;
+    qs('btn-start-upload').disabled = false;
+    qs('btn-cancel-upload').classList.add('hidden');
+    refreshStartStats();
+  }
+});
+qs('btn-cancel-upload').addEventListener('click', () => { state.uploadCancelled = true; showToast('Upload wird abgebrochen…','info'); });
+
+/* ---------------------------- Einstellungen ---------------------------- */
+
+function populateSettingsForm() {
+  const s = state.settings;
+  if (!s) return;
+  qs('setting-client-id').value = s.oneDriveClientId || '';
+  qs('setting-tenant').value = s.oneDriveTenant || 'common';
+  qs('redirect-uri-box').textContent = getRedirectUri();
+  qs('setting-threshold').value = s.similarityThreshold;
+  qs('setting-threshold-value').textContent = s.similarityThreshold + '%';
+  qs('setting-thumbnail-size').value = s.thumbnailSize;
+  qs('onedrive-target-path').textContent = s.oneDriveTargetFolderPath || '/Bilder';
+  state.oneDriveBrowsePath = s.oneDriveTargetFolderPath || '/';
+  refreshStartStats();
+}
+qs('setting-threshold').addEventListener('input', (e) => { qs('setting-threshold-value').textContent = e.target.value + '%'; });
+qs('btn-copy-redirect').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(getRedirectUri()); showToast('Redirect-URI kopiert.', 'success'); }
+  catch (err) { showToast('Kopieren nicht möglich - bitte manuell markieren.', 'error'); }
+});
+qs('btn-save-settings').addEventListener('click', async () => {
+  const partial = {
+    oneDriveClientId: qs('setting-client-id').value.trim(),
+    oneDriveTenant: qs('setting-tenant').value,
+    similarityThreshold: Number(qs('setting-threshold').value),
+    thumbnailSize: Number(qs('setting-thumbnail-size').value)
+  };
+  state.settings = await updateSettings(partial);
+  state.similarityThreshold = partial.similarityThreshold;
+  showToast('Einstellungen gespeichert.', 'success');
+  if (partial.oneDriveClientId && !msalInstance) {
+    await initMsal();
+    refreshOneDriveUI();
+  }
+});
+qs('btn-clear-data').addEventListener('click', async () => {
+  if (!confirm('Wirklich ALLE importierten Fotos aus dieser App löschen? Deine echten Fotos in der Galerie sind davon nicht betroffen.')) return;
+  await dbClear('photos');
+  await dbClear('uploadStatus');
+  state.selectedIds.clear();
+  state.uploadStatusByPhotoId.clear();
+  showToast('Alle Daten in der App wurden gelöscht.', 'success');
+  refreshStartStats();
+  if (state.view === 'photos') loadPhotosView();
+});
+
+/* ---------------------------- Initialisierung ---------------------------- */
+
+async function init() {
+  state.settings = await getSettings();
+  applyTheme(state.settings.theme || 'dark');
+  state.similarityThreshold = state.settings.similarityThreshold;
+  qs('threshold-slider').value = state.similarityThreshold;
+  qs('threshold-value').textContent = state.similarityThreshold + '%';
+
+  await initMsal();
+  await refreshOneDriveUI();
+  await refreshStartStats();
+
+  log('INFO', 'Photo Manager Mobile gestartet.');
+  if (location.protocol === 'file:') {
+    log('WARN', 'Seite läuft über file:// - OneDrive-Anmeldung funktioniert nur über eine gehostete https-Adresse.');
+  }
+}
+init().catch((err) => {
+  console.error(err);
+  showToast(`Initialisierung fehlgeschlagen: ${err.message}`, 'error', 8000);
+});
+</script>
+</body>
+</html>
